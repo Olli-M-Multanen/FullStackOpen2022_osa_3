@@ -34,9 +34,20 @@ let persons = [
     }
 ]
 
+const timeNow = new Date()
+const arrCount = persons.length
+
 // API routes
 app.get('/api/persons', (req, res) => {
     res.json(persons)
+})
+app.get('/api/info', (req, res) => {
+    res.send(
+        `<div>
+            <p>Phonebook has info for ${arrCount} people </p>
+            <p>${timeNow} </p>
+        </div>
+        `)
 })
 
 const PORT = 3001
