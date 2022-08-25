@@ -2,8 +2,11 @@
 // start server with - nodemon -,  command line:
 // npm run dev
 
+
 const express = require('express')
 const app = express()
+
+app.use(express.json())
 
 // Hardcoded data example
 let persons = [
@@ -34,13 +37,27 @@ let persons = [
     }
 ]
 
-const timeNow = new Date()
-const arrCount = persons.length
-
 // API routes
+
+// GET all
 app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
+
+// GET id
+app.get('/api/persons/:id', (request, response) => {
+    const id = Number(request.params.id)
+    const contact = persons.find(contact => contact.id === id)
+    if (contact) {
+        response.json(contact)
+    } else {
+        response.status(404).end()
+    }
+})
+
+
+const timeNow = new Date()
+const arrCount = persons.length
 app.get('/api/info', (req, res) => {
     res.send(
         `<div>
