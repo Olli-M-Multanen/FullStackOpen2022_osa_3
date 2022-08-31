@@ -30,11 +30,6 @@ let persons = [
         name: "Mary Poppendick",
         number: "39-23-6423122"
     },
-    {
-        id: 5,
-        name: "John Doe",
-        number: "33-1617832"
-    }
 ]
 
 // API routes
@@ -69,7 +64,7 @@ app.get('/api/persons/:id', (req, res) => {
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const deleted = persons.find(person => person.id === id)
-    if (deleted){
+    if (deleted) {
         persons = persons.filter(person => person.id !== id)
         res.status(200).json(deleted)
     } else {
@@ -90,23 +85,32 @@ const generateId = (min, max) => {
 }
 app.post('/api/persons', (req, res) => {
     const body = req.body
+    const alreadyExists = persons.find(person => person.name === body.name)
 
-    if(!body.name) {
+    if (!body.name) {
         return res
-        .status(404)
-        .json({error: "content missing"})
+        .status(400)
+        .json({ error: "contact name is missing"})
+    } else if (!body.number) {
+        return res
+        .status(400)
+        .json({ error: "contact number is missing" })
+    } else if (alreadyExists) {
+        return res
+        .status(400)
+        .json({ error: "contact already exists" })
+    } else {
+        const contact = {
+            id: generateId(),
+            name: body.name,
+            number: body.number,
+        }
+        persons = persons.concat(contact)
+        res
+        .status(201)
+        .json(contact)
     }
-
-    const contact = {
-        id: generateId(),
-        name: body.name,
-        number: body.number,
-    }
-
-    persons = persons.concat(contact)
-    res.json(contact)
 })
-
 
 const PORT = 3001
 app.listen(PORT, () => {
