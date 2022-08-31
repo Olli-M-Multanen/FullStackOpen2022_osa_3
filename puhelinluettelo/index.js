@@ -49,12 +49,12 @@ app.get('/api/info', (req, res) => {
         `)
 })
 
-// GET all
+// GET all contacts
 app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
 
-// GET id
+// GET contact
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const contact = persons.find(contact => contact.id === id)
@@ -65,7 +65,7 @@ app.get('/api/persons/:id', (req, res) => {
     }
 })
 
-// DELETE id
+// DELETE contact
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const deleted = persons.find(person => person.id === id)
@@ -80,6 +80,33 @@ app.delete('/api/persons/:id', (req, res) => {
 
     res.status(204).end
 })
+
+// ADD new contact
+const generateId = (min, max) => {
+    min = Math.ceil(persons.length)
+    max = Math.floor(10000)
+
+    return Math.floor(Math.random() * (max - min))
+}
+app.post('/api/persons', (req, res) => {
+    const body = req.body
+
+    if(!body.name) {
+        return res
+        .status(404)
+        .json({error: "content missing"})
+    }
+
+    const contact = {
+        id: generateId(),
+        name: body.name,
+        number: body.number,
+    }
+
+    persons = persons.concat(contact)
+    res.json(contact)
+})
+
 
 const PORT = 3001
 app.listen(PORT, () => {
