@@ -38,24 +38,6 @@ let persons = [
 ]
 
 // API routes
-
-// GET all
-app.get('/api/persons', (req, res) => {
-    res.json(persons)
-})
-
-// GET id
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const contact = persons.find(contact => contact.id === id)
-    if (contact) {
-        response.json(contact)
-    } else {
-        response.status(404).end()
-    }
-})
-
-
 const timeNow = new Date()
 const arrCount = persons.length
 app.get('/api/info', (req, res) => {
@@ -65,6 +47,38 @@ app.get('/api/info', (req, res) => {
             <p>${timeNow} </p>
         </div>
         `)
+})
+
+// GET all
+app.get('/api/persons', (req, res) => {
+    res.json(persons)
+})
+
+// GET id
+app.get('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    const contact = persons.find(contact => contact.id === id)
+    if (contact) {
+        res.json(contact)
+    } else {
+        res.status(404).end()
+    }
+})
+
+// DELETE id
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    const deleted = persons.find(person => person.id === id)
+    if (deleted){
+        persons = persons.filter(person => person.id !== id)
+        res.status(200).json(deleted)
+    } else {
+        res
+        .status(404)
+        .json({message: "Contact not found"})
+    }
+
+    res.status(204).end
 })
 
 const PORT = 3001
