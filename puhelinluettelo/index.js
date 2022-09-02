@@ -34,8 +34,20 @@ let persons = [
     },
 ]
 
-app.use(morgan('tiny'))
 
+
+// Morgan Logger way to get the entire response body
+// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
+
+// morgan.token('body', function (req, res) {
+//     return JSON.stringify([req.body])
+// })
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :param[name] :param[number]' ))
+// Custom Morgan token which returns specifically requested data from body
+morgan.token('param', function(req, res, param) {
+    return req.body[param]
+})
 
 
 // API routes
@@ -113,7 +125,7 @@ app.post('/api/persons', (req, res) => {
         }
         persons = persons.concat(contact)
         res
-        .status(201)
+        .status(200)
         .json(contact)
     }
 })
