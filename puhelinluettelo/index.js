@@ -5,6 +5,8 @@
 
 const express = require('express')
 const app = express()
+// Middleware HTTP request logger "Morgan"
+const morgan = require('morgan')
 
 app.use(express.json())
 
@@ -31,6 +33,10 @@ let persons = [
         number: "39-23-6423122"
     },
 ]
+
+app.use(morgan('tiny'))
+
+
 
 // API routes
 const timeNow = new Date()
