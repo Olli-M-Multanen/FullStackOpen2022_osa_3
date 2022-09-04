@@ -1,6 +1,7 @@
 // Backend server with Node.js + Express example
 // start server with - nodemon -,  command line:
-// npm run dev
+// local version : npm run dev
+// deploy to .fly and open: npm run deploy:full
 
 const express = require('express')
 const cors = require('cors')
