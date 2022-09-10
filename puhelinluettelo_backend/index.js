@@ -3,13 +3,14 @@
 // local version : npm run dev
 // deploy to .fly and open: npm run deploy:full
 
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const Contact = require('./models/contact')
 
 const app = express()
 // Middleware HTTP request logger "Morgan"
 const morgan = require('morgan')
-
 app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
@@ -38,8 +39,6 @@ let persons = [
     },
 ]
 
-
-
 // Morgan Logger way to get the entire response body
 // app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
 
@@ -53,10 +52,10 @@ morgan.token('param', function(req, res, param) {
     return req.body[param]
 })
 
-
 // API routes
 const timeNow = new Date()
 const arrCount = persons.length
+
 app.get('/api/info', (req, res) => {
     res.send(
         `<div>
@@ -68,73 +67,58 @@ app.get('/api/info', (req, res) => {
 
 // GET all contacts
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Contact.find({}).then(contacts => {
+        res.json(contacts)
+    })
 })
 
 // GET contact
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const contact = persons.find(contact => contact.id === id)
-    if (contact) {
+    Contact.findById(req.params.id).then(contact => {
         res.json(contact)
-    } else {
-        res.status(404).end()
-    }
+    })
 })
 
 // DELETE contact
 app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const deleted = persons.find(person => person.id === id)
-    if (deleted) {
-        persons = persons.filter(person => person.id !== id)
-        res.status(200).json(deleted)
-    } else {
-        res
-        .status(404)
-        .json({message: "Contact not found"})
-    }
-
-    res.status(204).end
+    const id = req.params.id
+    Contact.findById(req.params.id).then(contact => {
+        try {
+            contact.deleteOne({ "_id" : id})
+            console.log(`deleted ${contact.name} from database`)
+            res.status(200).end()
+        } catch (e) {
+            console.log(e)
+        }
+    })
 })
 
 // ADD new contact
-const generateId = (min, max) => {
-    min = Math.ceil(persons.length)
-    max = Math.floor(10000)
-
-    return Math.floor(Math.random() * (max - min))
-}
 app.post('/api/persons', (req, res) => {
     const body = req.body
     const alreadyExists = persons.find(person => person.name === body.name)
 
-    if (!body.name) {
+    if (body.name === undefined) {
         return res
         .status(400)
         .json({ error: "contact name is missing"})
-    } else if (!body.number) {
+    } else if (body.number === null) {
         return res
         .status(400)
-        .json({ error: "contact number is missing" })
-    } else if (alreadyExists) {
-        return res
-        .status(400)
-        .json({ error: "contact already exists" })
-    } else {
-        const contact = {
-            id: generateId(),
-            name: body.name,
-            number: body.number,
-        }
-        persons = persons.concat(contact)
-        res
-        .status(200)
-        .json(contact)
+        .json({ error: "contact number is missing"})
     }
+
+    const contact = new Contact({
+        name: body.name,
+        number: body.number
+    })
+
+    contact.save().then(savedContact => {
+        res.json(savedContact)
+    })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
