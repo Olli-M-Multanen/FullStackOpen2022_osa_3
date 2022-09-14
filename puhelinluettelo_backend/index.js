@@ -3,17 +3,34 @@
 // local version : npm run dev
 // deploy to .fly and open: npm run deploy:full
 
+// require .dotenv always first
 require('dotenv').config()
+
+// Middlewaret in correct order
 const express = require('express')
-const cors = require('cors')
+const app = express()
 const Contact = require('./models/contact')
 
-const app = express()
+const cors = require('cors')
 // Middleware HTTP request logger "Morgan"
-const morgan = require('morgan')
-app.use(express.json())
-app.use(cors())
 app.use(express.static('build'))
+app.use(express.json())
+const morgan = require('morgan')
+
+// Morgan Logger way to get the entire response body
+// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
+
+// morgan.token('body', function (req, res) {
+//     return JSON.stringify([req.body])
+// })
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :param[name] :param[number]' ))
+// Custom Morgan token which returns specifically requested data from body
+morgan.token('param', function(req, res, param) {
+    return req.body[param]
+})
+
+app.use(cors())
 
 // Hardcoded data example
 let persons = [
@@ -39,19 +56,6 @@ let persons = [
     },
 ]
 
-// Morgan Logger way to get the entire response body
-// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
-
-// morgan.token('body', function (req, res) {
-//     return JSON.stringify([req.body])
-// })
-
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :param[name] :param[number]' ))
-// Custom Morgan token which returns specifically requested data from body
-morgan.token('param', function(req, res, param) {
-    return req.body[param]
-})
-
 // API routes
 const timeNow = new Date()
 const arrCount = persons.length
@@ -73,30 +77,28 @@ app.get('/api/persons', (req, res) => {
 })
 
 // GET contact
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
     Contact.findById(req.params.id).then(contact => {
-        res.json(contact)
-    })
-})
-
-// DELETE contact
-app.delete('/api/persons/:id', (req, res) => {
-    const id = req.params.id
-    Contact.findById(req.params.id).then(contact => {
-        try {
-            contact.deleteOne({ "_id" : id})
-            console.log(`deleted ${contact.name} from database`)
-            res.status(200).end()
-        } catch (e) {
-            console.log(e)
+        if (contact) {
+            res.json(contact)
+        } else {
+            res.status(404).end()
         }
     })
 })
 
+// DELETE contact
+app.delete('/api/persons/:id', (req, res, next) => {
+    Contact.findByIdAndDelete(req.params.id)
+    .then(contact => {
+        res.status(204).end()
+        console.log(`deleted ${contact.name} from database`)
+    }).catch (error => next(error)) 
+    })
+
 // ADD new contact
 app.post('/api/persons', (req, res) => {
     const body = req.body
-    const alreadyExists = persons.find(person => person.name === body.name)
 
     if (body.name === undefined) {
         return res
@@ -117,6 +119,23 @@ app.post('/api/persons', (req, res) => {
         res.json(savedContact)
     })
 })
+
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndpoint)
+
+const errorHandler = (error, req, res, next) => {
+    console.log(error.message)
+
+    if (error.name === "CastError") {
+        return res.status(400).send({ error: 'malformatted id' })
+    }
+
+    next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
