@@ -16,6 +16,7 @@ const cors = require('cors')
 app.use(express.static('build'))
 app.use(express.json())
 const morgan = require('morgan')
+const { update } = require('./models/contact')
 
 // Morgan Logger way to get the entire response body
 // app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
@@ -118,6 +119,21 @@ app.post('/api/persons', (req, res) => {
     contact.save().then(savedContact => {
         res.json(savedContact)
     })
+})
+
+// UPDATE contact
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+
+    const contact = {
+        name: body.name,
+        number: body.number,
+    }
+    Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+        .then(updatedContact => {
+            res.json(updatedContact)
+        })
+        .catch(error => next(error))
 })
 
 const unknownEndpoint = (req, res) => {
