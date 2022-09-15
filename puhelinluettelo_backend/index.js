@@ -16,7 +16,6 @@ const cors = require('cors')
 app.use(express.static('build'))
 app.use(express.json())
 const morgan = require('morgan')
-const { update } = require('./models/contact')
 
 // Morgan Logger way to get the entire response body
 // app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
@@ -33,41 +32,18 @@ morgan.token('param', function(req, res, param) {
 
 app.use(cors())
 
-// Hardcoded data example
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-5323523"
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345"
-    },
-    {
-        id: 4,
-        name: "Mary Poppendick",
-        number: "39-23-6423122"
-    },
-]
-
 // API routes
-const timeNow = new Date()
-const arrCount = persons.length
 
 app.get('/api/info', (req, res) => {
-    res.send(
-        `<div>
-            <p>Phonebook has info for ${arrCount} people </p>
-            <p>${timeNow} </p>
-        </div>
-        `)
+    const timeNow = new Date()
+    Contact.countDocuments({}).then(contactCount => {
+        res.send(
+            `<div>
+                <p>Phonebook has info for ${contactCount} people </p>
+                <p>${timeNow} </p>
+            </div>
+            `)
+    })
 })
 
 // GET all contacts
