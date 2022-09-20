@@ -17,6 +17,7 @@ app.use(express.static('build'))
 app.use(express.json())
 const morgan = require('morgan')
 
+
 // Morgan Logger way to get the entire response body
 // app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body' ))
 
@@ -74,7 +75,7 @@ app.delete('/api/persons/:id', (req, res, next) => {
     })
 
 // ADD new contact
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
 
     if (body.name === undefined) {
@@ -85,27 +86,28 @@ app.post('/api/persons', (req, res) => {
         return res
         .status(400)
         .json({ error: "contact number is missing"})
+    } else {
+        const contact = new Contact({
+            name: body.name,
+            number: body.number
+        })
+        
+        contact.save()
+            .then(savedContact => {
+            res.json(savedContact)
+        })
+        .catch(error => next(error))
     }
-
-    const contact = new Contact({
-        name: body.name,
-        number: body.number
-    })
-
-    contact.save().then(savedContact => {
-        res.json(savedContact)
-    })
 })
 
 // UPDATE contact
 app.put('/api/persons/:id', (req, res, next) => {
-    const body = req.body
+    const { name, number } = req.body
 
-    const contact = {
-        name: body.name,
-        number: body.number,
-    }
-    Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+    Contact.findByIdAndUpdate(
+        req.params.id,
+        { name, number },
+        { new: true, runValidators: true, context: 'query'})
         .then(updatedContact => {
             res.json(updatedContact)
         })
@@ -122,6 +124,8 @@ const errorHandler = (error, req, res, next) => {
 
     if (error.name === "CastError") {
         return res.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: "input failed" })
     }
 
     next(error)

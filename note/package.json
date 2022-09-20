@@ -6,12 +6,19 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ui": "rm -rf build && cd /home/kone/Projects/FullStackOpen2022/osa_0/spa && npm run build && cp -r build ../note",
+    "deploy": "fly deploy",
+    "deploy:full": "npm run build:ui && npm run deploy",
+    "logs:prod": "fly logs"
   },
   "author": "olli_multanen",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1"
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
+    "mongoose": "^6.5.4"
   },
   "devDependencies": {
     "nodemon": "^2.0.19"
