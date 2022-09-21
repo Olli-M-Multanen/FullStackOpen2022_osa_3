@@ -2,6 +2,7 @@
 // start server with - nodemon -,  command line:
 // local version : npm run dev
 // deploy to .fly and open: npm run deploy:full
+// eslint command: npm run lint
 
 // require .dotenv always first
 require('dotenv').config()

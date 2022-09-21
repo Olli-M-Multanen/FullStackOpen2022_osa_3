@@ -10,7 +10,8 @@
     "build:ui": "cp -rf ~/Projects/FullStackOpen2022/osa_2/puhelinluettelo/build ~/Projects/FullStackOpen2022/osa_3/puhelinluettelo_backend",
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
-    "logs:prod": "fly logs"
+    "logs:prod": "fly logs",
+    "lint": "eslint ."
   },
   "author": "Olli Multanen",
   "license": "ISC",
@@ -22,6 +23,8 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.23.1",
+    "eslint-plugin-react": "^7.31.8",
     "nodemon": "^2.0.19"
   }
 }
